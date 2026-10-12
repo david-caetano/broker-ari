@@ -47,3 +47,35 @@ $ openssl req -nodes -x509 -sha256 -newkey rsa:2048 \
   -addext "subjectAltName = DNS:broker-ari.everyware-cloud.com" 
 $ ./broker-ari --mqtt-broker-certificate-path ./broker-ari.everyware-cloud.com.crt --mqtt-broker-private-key-path ./broker-ari.everyware-cloud.com.key --api-username someuser --api-password somepass
 ```
+
+Run in docker
+
+Build
+`docker build -t broker-ari .
+
+Generate SSL
+```
+docker run --rm \
+  -v "$PWD:/work" \
+  -w /work \
+  alpine/openssl req -nodes -x509 -sha256 \
+  -newkey rsa:2048 \
+  -keyout broker-ari.everyware-cloud.com.key \
+  -out broker-ari.everyware-cloud.com.crt \
+  -days 356 \
+  -subj "/C=NL/ST=Zuid Holland/L=Rotterdam/O=ACME Corp/OU=IT Dept/CN=broker-ari.everyware-cloud.com" \
+  -addext "subjectAltName = DNS:broker-ari.everyware-cloud.com"
+```
+
+run program
+
+```
+docker run --rm \
+  -v "$PWD/config:/config" \
+  -v "$PWD/broker-ari.everyware-cloud.com.crt:/certs/broker-ari.crt:ro" \
+  -v "$PWD/broker-ari.everyware-cloud.com.key:/certs/broker-ari.key:ro" \
+  --entrypoint /usr/local/bin/broker-ari \
+  broker-ari \
+  --api-username someuser \
+  --api-password somepass
+```
